@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
 import os
 import re
-import mysql.connector
+import psycopg2
+import psycopg2.extras
 
 from werkzeug.utils import secure_filename
 from pypdf import PdfReader
@@ -16,6 +17,7 @@ app = Flask(
     static_folder="static",
     static_url_path="/static"
 )
+
 
 print("======================================")
 print("PROJECT ROOT:")
@@ -37,6 +39,7 @@ print(
     )
 )
 print("======================================")
+
 
 # =========================================================
 # CONFIGURATION
@@ -327,10 +330,6 @@ LEARNING = {
 
 OPPORTUNITIES = [
 
-    # =====================================================
-    # INTERNSHIPS
-    # =====================================================
-
     {
         "type": "Internship",
         "icon": "💼",
@@ -405,11 +404,6 @@ OPPORTUNITIES = [
         ]
     },
 
-
-    # =====================================================
-    # REMOTE JOBS
-    # =====================================================
-
     {
         "type": "Remote Job",
         "icon": "🌍",
@@ -469,11 +463,6 @@ OPPORTUNITIES = [
         ]
     },
 
-
-    # =====================================================
-    # HACKATHONS
-    # =====================================================
-
     {
         "type": "Hackathon",
         "icon": "🏆",
@@ -523,21 +512,78 @@ OPPORTUNITIES = [
 
 
 # =========================================================
-# MYSQL CONNECTION
+# POSTGRESQL DATABASE CONNECTION
 # =========================================================
 
 def get_db_connection():
 
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="123456",
-        database="career_analyzer"
+    database_url = os.environ.get("DATABASE_URL")
+
+    if not database_url:
+
+        raise Exception(
+            "DATABASE_URL environment variable is not configured."
+        )
+
+    return psycopg2.connect(
+        database_url,
+        sslmode="require"
     )
 
 
 # =========================================================
-# SAVE ANALYSIS TO MYSQL
+# CREATE TABLE
+# =========================================================
+
+def create_table():
+
+    db = None
+    cursor = None
+
+    try:
+
+        db = get_db_connection()
+
+        cursor = db.cursor()
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS analysis_history (
+                id SERIAL PRIMARY KEY,
+                resume_name VARCHAR(255) NOT NULL,
+                target_career VARCHAR(255) NOT NULL,
+                keyword_score DOUBLE PRECISION,
+                ai_semantic_score DOUBLE PRECISION,
+                final_score DOUBLE PRECISION,
+                analyzed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        db.commit()
+
+        print("===================================")
+        print("POSTGRESQL TABLE READY")
+        print("===================================")
+
+    except Exception as e:
+
+        print("===================================")
+        print("TABLE CREATION ERROR:")
+        print(e)
+        print("===================================")
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if db:
+            db.close()
+
+
+# =========================================================
+# SAVE ANALYSIS TO POSTGRESQL
 # =========================================================
 
 def save_analysis(
@@ -554,6 +600,7 @@ def save_analysis(
     try:
 
         db = get_db_connection()
+
         cursor = db.cursor()
 
         query = """
@@ -591,7 +638,7 @@ def save_analysis(
         db.commit()
 
         print("===================================")
-        print("ANALYSIS SAVED TO MYSQL SUCCESSFULLY")
+        print("ANALYSIS SAVED TO POSTGRESQL SUCCESSFULLY")
         print("===================================")
 
     except Exception as e:
@@ -630,10 +677,11 @@ def get_dashboard_data():
         db = get_db_connection()
 
         cursor = db.cursor(
-            dictionary=True
+            cursor_factory=psycopg2.extras.RealDictCursor
         )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT
                 id,
                 resume_name,
@@ -644,9 +692,15 @@ def get_dashboard_data():
                 analyzed_at
             FROM analysis_history
             ORDER BY id DESC
-        """)
+            """
+        )
 
         history = cursor.fetchall()
+
+        history = [
+            dict(row)
+            for row in history
+        ]
 
         total = len(history)
 
@@ -1022,8 +1076,6 @@ def opportunity_recommendations(
             opportunity_skills
         )
 
-        # DIRECT SKILL MATCH SCORE
-
         if total_skills > 0:
 
             skill_match = (
@@ -1035,8 +1087,6 @@ def opportunity_recommendations(
         else:
 
             skill_match = 0
-
-        # CAREER RELEVANCE SCORE
 
         career_related = len(
             career_skills
@@ -1053,8 +1103,6 @@ def opportunity_recommendations(
             )
         ) * 15
 
-        # FINAL SCORE
-
         final_match = min(
             100,
             round(
@@ -1064,8 +1112,6 @@ def opportunity_recommendations(
                 2
             )
         )
-
-        # READINESS LEVEL
 
         if final_match >= 80:
 
@@ -1188,10 +1234,6 @@ def get_readiness_level(score):
 
 def index():
 
-    # =====================================================
-    # POST REQUEST
-    # =====================================================
-
     if request.method == "POST":
 
         file = request.files.get(
@@ -1201,10 +1243,6 @@ def index():
         career = request.form.get(
             "career"
         )
-
-        # =================================================
-        # VALIDATION
-        # =================================================
 
         if not file:
 
@@ -1274,10 +1312,6 @@ def index():
                 error="Please select a valid career."
             )
 
-        # =================================================
-        # SAVE FILE
-        # =================================================
-
         filename = secure_filename(
             file.filename
         )
@@ -1293,25 +1327,13 @@ def index():
 
         try:
 
-            # =============================================
-            # EXTRACT TEXT
-            # =============================================
-
             text = pdf_text(
                 path
             )
 
-            # =============================================
-            # DETECT SKILLS
-            # =============================================
-
             skills = skills_from_text(
                 text
             )
-
-            # =============================================
-            # ANALYZE
-            # =============================================
 
             (
                 keyword_score,
@@ -1327,17 +1349,9 @@ def index():
                 career
             )
 
-            # =============================================
-            # CAREER RECOMMENDATIONS
-            # =============================================
-
             roles = role_recommendations(
                 skills
             )
-
-            # =============================================
-            # LEARNING ROADMAP
-            # =============================================
 
             roadmap = []
 
@@ -1368,10 +1382,6 @@ def index():
                     }
                 )
 
-            # =============================================
-            # OPPORTUNITY MATCHING
-            # =============================================
-
             opportunities = (
                 opportunity_recommendations(
                     skills,
@@ -1379,9 +1389,7 @@ def index():
                 )
             )
 
-            # =============================================
-            # SAVE TO MYSQL
-            # =============================================
+            # SAVE ANALYSIS TO POSTGRESQL
 
             save_analysis(
                 filename,
@@ -1391,10 +1399,6 @@ def index():
                 final_score
             )
 
-            # =============================================
-            # LOAD UPDATED HISTORY
-            # =============================================
-
             (
                 history,
                 total,
@@ -1403,10 +1407,6 @@ def index():
                 chart_history
 
             ) = get_dashboard_data()
-
-            # =============================================
-            # RESULT OBJECT
-            # =============================================
 
             result = {
 
@@ -1448,10 +1448,6 @@ def index():
                 "opportunities":
                     opportunities
             }
-
-            # =============================================
-            # RENDER PAGE
-            # =============================================
 
             return render_template(
 
@@ -1511,10 +1507,6 @@ def index():
                     "Please use a text-based PDF resume."
                 )
             )
-
-    # =====================================================
-    # GET REQUEST
-    # =====================================================
 
     (
         history,
@@ -1630,6 +1622,7 @@ def delete_all_history_route():
         cursor.execute(
             """
             TRUNCATE TABLE analysis_history
+            RESTART IDENTITY
             """
         )
 
@@ -1719,8 +1712,6 @@ def presentation():
     )
 
 
-    
-
 # =========================================================
 # FILE TOO LARGE ERROR
 # =========================================================
@@ -1767,10 +1758,18 @@ def file_too_large(error):
 
 
 # =========================================================
+# STARTUP
+# =========================================================
+
+create_table()
+
+
+# =========================================================
 # RUN APPLICATION
 # =========================================================
 
 if __name__ == "__main__":
+
     app.run(
         host="0.0.0.0",
         port=5000,
