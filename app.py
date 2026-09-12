@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for
 import os
 import re
+
 import psycopg2
-import psycopg2.extras
+from psycopg2.extras import RealDictCursor
 
 from werkzeug.utils import secure_filename
 from pypdf import PdfReader
@@ -19,10 +20,6 @@ app = Flask(
 )
 
 
-# =========================================================
-# DEBUG INFORMATION
-# =========================================================
-
 print("======================================")
 print("PROJECT ROOT:")
 print(app.root_path)
@@ -31,7 +28,12 @@ print("STATIC FOLDER:")
 print(app.static_folder)
 
 print("VIDEO PATH:")
-print(os.path.join(app.static_folder, "my-ai-video.mp4"))
+print(
+    os.path.join(
+        app.static_folder,
+        "my-ai-video.mp4"
+    )
+)
 
 print("VIDEO EXISTS:")
 print(
@@ -51,7 +53,11 @@ print("======================================")
 # =========================================================
 
 app.config["UPLOAD_FOLDER"] = "uploads"
-app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
+
+app.config["MAX_CONTENT_LENGTH"] = (
+    8 * 1024 * 1024
+)
+
 
 os.makedirs(
     app.config["UPLOAD_FOLDER"],
@@ -60,7 +66,7 @@ os.makedirs(
 
 
 # =========================================================
-# DELETE PASSWORD PROTECTION
+# DELETE PASSWORD
 # =========================================================
 
 DELETE_PASSWORD = "krishna"
@@ -524,7 +530,7 @@ OPPORTUNITIES = [
 
 
 # =========================================================
-# POSTGRESQL DATABASE CONNECTION
+# POSTGRESQL CONNECTION
 # =========================================================
 
 def get_db_connection():
@@ -536,64 +542,12 @@ def get_db_connection():
     if not database_url:
 
         raise Exception(
-            "DATABASE_URL environment variable is not configured."
+            "DATABASE_URL environment variable is not set."
         )
 
     return psycopg2.connect(
-        database_url,
-        sslmode="require"
+        database_url
     )
-
-
-# =========================================================
-# CREATE TABLE
-# =========================================================
-
-def create_table():
-
-    db = None
-    cursor = None
-
-    try:
-
-        db = get_db_connection()
-
-        cursor = db.cursor()
-
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS analysis_history (
-                id SERIAL PRIMARY KEY,
-                resume_name VARCHAR(255) NOT NULL,
-                target_career VARCHAR(255) NOT NULL,
-                keyword_score DOUBLE PRECISION,
-                ai_semantic_score DOUBLE PRECISION,
-                final_score DOUBLE PRECISION,
-                analyzed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-            """
-        )
-
-        db.commit()
-
-        print("===================================")
-        print("POSTGRESQL TABLE READY")
-        print("===================================")
-
-    except Exception as e:
-
-        print("===================================")
-        print("TABLE CREATION ERROR:")
-        print(e)
-        print("===================================")
-
-    finally:
-
-        if cursor:
-            cursor.close()
-
-        if db:
-            db.close()
 
 
 # =========================================================
@@ -617,32 +571,36 @@ def save_analysis(
 
         cursor = db.cursor()
 
+        query = """
+        INSERT INTO analysis_history
+        (
+            resume_name,
+            target_career,
+            keyword_score,
+            ai_semantic_score,
+            final_score
+        )
+        VALUES
+        (
+            %s,
+            %s,
+            %s,
+            %s,
+            %s
+        )
+        """
+
+        values = (
+            filename,
+            career,
+            keyword_score,
+            ai_semantic_score,
+            final_score
+        )
+
         cursor.execute(
-            """
-            INSERT INTO analysis_history
-            (
-                resume_name,
-                target_career,
-                keyword_score,
-                ai_semantic_score,
-                final_score
-            )
-            VALUES
-            (
-                %s,
-                %s,
-                %s,
-                %s,
-                %s
-            )
-            """,
-            (
-                filename,
-                career,
-                keyword_score,
-                ai_semantic_score,
-                final_score
-            )
+            query,
+            values
         )
 
         db.commit()
@@ -687,7 +645,7 @@ def get_dashboard_data():
         db = get_db_connection()
 
         cursor = db.cursor(
-            cursor_factory=psycopg2.extras.RealDictCursor
+            cursor_factory=RealDictCursor
         )
 
         cursor.execute(
@@ -706,11 +664,6 @@ def get_dashboard_data():
         )
 
         history = cursor.fetchall()
-
-        history = [
-            dict(row)
-            for row in history
-        ]
 
         total = len(history)
 
@@ -1211,17 +1164,25 @@ def get_readiness_level(score):
 
     if score >= 85:
 
-        return "Excellent Career Readiness"
+        return (
+            "Excellent Career Readiness"
+        )
 
     if score >= 70:
 
-        return "Strong Career Readiness"
+        return (
+            "Strong Career Readiness"
+        )
 
     if score >= 50:
 
-        return "Developing Career Readiness"
+        return (
+            "Developing Career Readiness"
+        )
 
-    return "Beginner Career Readiness"
+    return (
+        "Beginner Career Readiness"
+    )
 
 
 # =========================================================
@@ -1235,6 +1196,7 @@ def get_readiness_level(score):
         "POST"
     ]
 )
+
 def index():
 
     if request.method == "POST":
@@ -1346,6 +1308,7 @@ def index():
                 missing,
                 priority,
                 required
+
             ) = analyze(
                 skills,
                 career
@@ -1361,14 +1324,22 @@ def index():
 
                 roadmap.append(
                     {
-                        "skill": skill,
+
+                        "skill":
+                            skill,
 
                         "priority":
+
                             "High"
+
                             if required[skill] >= 15
-                            else "Medium",
+
+                            else
+
+                            "Medium",
 
                         "action":
+
                             LEARNING.get(
                                 skill,
                                 "Practice this skill with a project."
@@ -1397,6 +1368,7 @@ def index():
                 average,
                 latest,
                 chart_history
+
             ) = get_dashboard_data()
 
             result = {
@@ -1472,6 +1444,7 @@ def index():
                 average,
                 latest,
                 chart_history
+
             ) = get_dashboard_data()
 
             return render_template(
@@ -1504,6 +1477,7 @@ def index():
         average,
         latest,
         chart_history
+
     ) = get_dashboard_data()
 
     return render_template(
@@ -1528,13 +1502,13 @@ def index():
 
 # =========================================================
 # DELETE SINGLE HISTORY RECORD
-# PASSWORD PROTECTED
 # =========================================================
 
 @app.route(
     "/delete-history/<int:record_id>",
     methods=["POST"]
 )
+
 def delete_history(record_id):
 
     password = request.form.get(
@@ -1544,14 +1518,10 @@ def delete_history(record_id):
 
     if password != DELETE_PASSWORD:
 
-        print(
-            "DELETE DENIED: WRONG PASSWORD"
-        )
-
         return redirect(
             url_for(
                 "index",
-                delete_error="wrong_password"
+                delete_error="wrong"
             )
             +
             "#dashboard"
@@ -1610,13 +1580,13 @@ def delete_history(record_id):
 
 # =========================================================
 # DELETE ALL HISTORY
-# PASSWORD PROTECTED
 # =========================================================
 
 @app.route(
     "/delete-all-history",
     methods=["POST"]
 )
+
 def delete_all_history_route():
 
     password = request.form.get(
@@ -1626,14 +1596,10 @@ def delete_all_history_route():
 
     if password != DELETE_PASSWORD:
 
-        print(
-            "DELETE ALL DENIED: WRONG PASSWORD"
-        )
-
         return redirect(
             url_for(
                 "index",
-                delete_error="wrong_password"
+                delete_error="wrong"
             )
             +
             "#dashboard"
@@ -1694,6 +1660,7 @@ def delete_all_history_route():
 @app.route(
     "/dashboard"
 )
+
 def dashboard():
 
     (
@@ -1702,6 +1669,7 @@ def dashboard():
         average,
         latest,
         chart_history
+
     ) = get_dashboard_data()
 
     return render_template(
@@ -1731,6 +1699,7 @@ def dashboard():
 @app.route(
     "/presentation"
 )
+
 def presentation():
 
     return render_template(
@@ -1745,6 +1714,7 @@ def presentation():
 @app.errorhandler(
     413
 )
+
 def file_too_large(error):
 
     (
@@ -1753,6 +1723,7 @@ def file_too_large(error):
         average,
         latest,
         chart_history
+
     ) = get_dashboard_data()
 
     return render_template(
@@ -1782,13 +1753,6 @@ def file_too_large(error):
 
 
 # =========================================================
-# STARTUP
-# =========================================================
-
-create_table()
-
-
-# =========================================================
 # RUN APPLICATION
 # =========================================================
 
@@ -1798,4 +1762,4 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=5000,
         debug=True
-    )                        
+    )
