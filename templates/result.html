@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Analysis Result</title><link rel="stylesheet" href="/static/style.css"></head>
+<body><div class="wrap"><a class="back" href="/">← New analysis</a>
+<header class="small"><span>AI CAREER ANALYSIS</span><h1>{{career}}</h1><p>Personalized skill intelligence report</p></header>
+<div class="heroScore"><div><div class="big">{{score}}%</div><b>Career Readiness Score</b></div><div><p><b>Exact weighted skill score:</b> {{method_score}}%</p><p>Score combines weighted skill coverage with a small related-skill signal.</p></div></div>
+<div class="two"><section class="panel"><h2>✅ Skills detected</h2>{% for s in existing %}<span class="pill good">{{s}}</span>{% else %}<p>No exact required skills detected.</p>{% endfor %}</section>
+<section class="panel"><h2>❌ Priority gaps</h2>{% for s in missing %}<span class="pill bad">{{s}}</span>{% else %}<p>No major gaps.</p>{% endfor %}</section></div>
+<section class="panel"><h2>🎯 Career recommendations</h2>{% for role,sc in roles[:5] %}<div class="row"><span>{{role}}</span><div class="bar"><i style="width:{{sc}}%"></i></div><b>{{sc}}%</b></div>{% endfor %}</section>
+<section class="panel"><h2>🗺️ Personalized learning roadmap</h2>{% for r in roadmap %}<div class="road"><b>{{loop.index}}. {{r.skill}}</b><span>{{r.priority}} priority</span><p>{{r.action}}</p></div>{% else %}<p>Your current skills cover the selected role.</p>{% endfor %}</section>
+<section class="panel"><h2>🔬 Research methodology</h2><p><b>Baseline:</b> weighted exact skill matching.</p><p><b>Enhanced model:</b> combines the baseline with a related-skill signal. A full research version can replace this local proxy with transformer embeddings and cosine similarity.</p><p><b>Evaluation:</b> compare keyword/TF-IDF/semantic approaches on a labeled resume–job dataset and report precision, recall, F1 and ranking quality.</p></section>
+</div></body></html>

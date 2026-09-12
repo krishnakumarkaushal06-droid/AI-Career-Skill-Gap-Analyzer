@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Career & Skill Gap Analyzer</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">RESEARCH CONCLAVE 2026 • CSE (BDA)</div>
+  <h1>AI Career & Skill Gap Analyzer</h1>
+  <p>AI-assisted resume intelligence, career matching, skill-gap analytics and personalized upskilling.</p>
+  <div class="hero-chips"><span>Resume NLP</span><span>Career Matching</span><span>Skill Gap</span><span>Learning Roadmap</span></div>
+</header>
+
+{% if error %}<div class="error">⚠️ {{ error }}</div>{% endif %}
+
+<section class="panel upload-panel" id="analysis">
+  <div class="section-tag">01 • START ANALYSIS</div>
+  <h2>Analyze your career readiness</h2>
+  <p class="muted">Upload a PDF resume and select the career you want to evaluate.</p>
+  <form method="POST" enctype="multipart/form-data">
+    <div class="form-grid">
+      <div><label>Resume PDF</label><input type="file" name="resume" accept=".pdf" required></div>
+      <div><label>Target career</label><select name="career">{% for j in jobs %}<option value="{{ j }}">{{ j }}</option>{% endfor %}</select></div>
+    </div>
+    <button type="submit">🚀 Run AI Career Analysis</button>
+  </form>
+</section>
+
+{% if result %}
+<section class="result-head">
+  <div><div class="section-tag">02 • CURRENT ANALYSIS</div><h2>{{ result.career }}</h2><p>{{ result.level }} • personalized skill intelligence report</p></div>
+  <a href="#dashboard" class="jump">View dashboard ↓</a>
+</section>
+
+<section class="score-grid">
+  <div class="panel score-card">
+    <div class="score-ring"><span>{{ result.score }}%</span><small>Readiness</small></div>
+    <div><div class="section-tag">CAREER READINESS SCORE</div><h2>{{ result.score }}%</h2><p class="muted">Weighted exact matching + related-skill signal.</p></div>
+  </div>
+  <div class="panel metrics">
+    <div><span>🔑 Keyword Matching</span><strong>{{ result.keyword_score }}%</strong></div>
+    <div><span>🤖 Semantic Signal</span><strong>{{ result.ai_score }}%</strong></div>
+    <div><span>🎯 Final AI Score</span><strong>{{ result.score }}%</strong></div>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="section-tag">03 • MODEL EVALUATION</div><h2>📈 Matching Method Comparison</h2>
+  <div class="compare-grid">
+    <div class="compare-card"><div><b>Keyword Model</b><strong>{{ result.keyword_score }}%</strong></div><div class="bar"><i style="width:{{ result.keyword_score }}%"></i></div><small>Exact weighted skill coverage</small></div>
+    <div class="compare-card"><div><b>AI Semantic Model</b><strong>{{ result.ai_score }}%</strong></div><div class="bar"><i style="width:{{ result.ai_score }}%"></i></div><small>Coverage plus related-skill signal</small></div>
+  </div>
+</section>
+
+<section class="two">
+  <div class="panel"><div class="section-tag">04 • PROFILE STRENGTH</div><h2>✅ Matched Skills</h2><div class="pills">{% for s in result.existing %}<span class="pill good">✓ {{ s }}</span>{% else %}<p class="muted">No exact required skills detected.</p>{% endfor %}</div></div>
+  <div class="panel"><div class="section-tag">05 • SKILL GAP</div><h2>❌ Priority Gaps</h2><div class="pills">{% for s in result.missing %}<span class="pill bad">+ {{ s }}</span>{% else %}<p class="muted">🎉 No major skill gaps detected.</p>{% endfor %}</div></div>
+</section>
+
+<section class="panel">
+  <div class="section-tag">06 • CAREER RECOMMENDATION ENGINE</div><h2>🎯 Top Career Recommendations</h2>
+  <div class="recommendations">{% for role in result.roles[:5] %}<div class="bar-row"><span>#{{ loop.index }} {{ role.career }}</span><div class="bar"><i style="width:{{ role.score }}%"></i></div><b>{{ role.score }}%</b></div>{% endfor %}</div>
+</section>
+
+<section class="panel">
+  <div class="section-tag">07 • PERSONALIZED UPSKILLING</div><h2>🗺️ Learning Roadmap</h2>
+  {% for r in result.roadmap %}<div class="road"><div class="road-no">{{ loop.index }}</div><div class="road-main"><div><strong>{{ r.skill }}</strong><span class="priority {{ r.priority|lower }}">{{ r.priority }} Priority</span></div><p>{{ r.action }}</p></div></div>{% else %}<div class="success">🎉 Your current skills cover the selected career requirements.</div>{% endfor %}
+</section>
+{% endif %}
+
+<section id="dashboard" class="dashboard-title">
+  <div><div class="section-tag">08 • RESEARCH CONCLAVE DASHBOARD</div><h2>📊 Career Analytics Dashboard</h2><p>All analysis, trends and history are available on this same page.</p></div>
+  <a href="#analysis" class="jump">↑ New analysis</a>
+</section>
+
+<section class="stats">
+  <div class="stat panel"><span>Total Analyses</span><strong>{{ total }}</strong><small>Saved evaluation records</small></div>
+  <div class="stat panel"><span>Average Readiness</span><strong>{{ average }}%</strong><small>Across recorded analyses</small></div>
+  <div class="stat panel"><span>Latest Score</span><strong>{{ latest|round(0)|int }}%</strong><small>Most recent evaluation</small></div>
+</section>
+
+<section class="analytics-grid">
+  <div class="panel chart-panel"><div class="section-tag">TREND</div><h2>📈 Readiness History</h2><canvas id="scoreChart"></canvas></div>
+  <div class="panel chart-panel"><div class="section-tag">LATEST SNAPSHOT</div><h2>🧠 Score Breakdown</h2><canvas id="breakdownChart"></canvas>{% if history %}<div class="snapshot"><b>{{ history[0]['target_career'] }}</b><span>{{ history[0]['resume_name'] }}</span></div>{% else %}<p class="muted">Run your first analysis to populate the dashboard.</p>{% endif %}</div>
+</section>
+
+<section class="panel history-card">
+  <div class="history-head">
+    <div><div class="section-tag">09 • DATABASE HISTORY</div><h2>🗂️ Analysis History</h2></div>
+    {% if history %}
+    <form method="POST" action="{{ url_for('delete_all_history_route') }}" onsubmit="return confirm('Delete ALL analysis history? This cannot be undone.');">
+      <button type="submit" class="danger-btn">🗑️ Delete All History</button>
+    </form>
+    {% endif %}
+  </div>
+  {% if request.args.get('deleted') == 'one' %}<div class="success">✅ History entry deleted successfully.</div>{% elif request.args.get('deleted') == 'all' %}<div class="success">✅ All analysis history deleted successfully.</div>{% endif %}
+  {% if history %}<div class="table-wrap"><table><thead><tr><th>#</th><th>Resume</th><th>Target Career</th><th>Keyword</th><th>Semantic</th><th>Final</th><th>Analyzed</th><th>Action</th></tr></thead><tbody>{% for row in history %}<tr><td>{{ row['id'] }}</td><td>{{ row['resume_name'] }}</td><td>{{ row['target_career'] }}</td><td>{{ row['keyword_score'] }}%</td><td>{{ row['ai_semantic_score'] }}%</td><td><b>{{ row['final_score'] }}%</b></td><td>{{ row['analyzed_at'] }}</td><td><form method="POST" action="{{ url_for('delete_history', record_id=row['id']) }}" onsubmit="return confirm('Delete this analysis from history?');"><button type="submit" class="delete-btn">Delete</button></form></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty">No analysis records yet. Upload a resume and run your first analysis.</div>{% endif %}
+</section>
+
+<section class="panel methodology">
+  <div class="section-tag">10 • RESEARCH METHODOLOGY</div><h2>🔬 How the system works</h2>
+  <p>This prototype extracts skills from a PDF resume, compares them with weighted career profiles, adds a lightweight related-skill signal, ranks alternative careers, identifies priority gaps and generates an actionable learning roadmap.</p>
+  <div class="research-grid"><span>01 Resume Processing</span><span>02 Skill Extraction</span><span>03 Weighted Matching</span><span>04 Semantic Signal</span><span>05 Career Ranking</span><span>06 Gap Detection</span><span>07 Roadmap</span><span>08 History Analytics</span></div>
+</section>
+
+<footer><b>AI Career & Skill Gap Analyzer</b><span>Research Conclave 2026 • CSE (BDA)</span></footer>
+</div>
+<script>
+const historyLabels = {{ chart_history|map(attribute='id')|list|tojson }};
+const historyScores = {{ chart_history|map(attribute='final_score')|list|tojson }};
+const latestKeyword = {{ (history[0]['keyword_score'] if history else 0)|tojson }};
+const latestSemantic = {{ (history[0]['ai_semantic_score'] if history else 0)|tojson }};
+const latestFinal = {{ (history[0]['final_score'] if history else 0)|tojson }};
+new Chart(document.getElementById('scoreChart'), {type:'line', data:{labels:historyLabels.length?historyLabels:['No data'],datasets:[{label:'Final Readiness',data:historyScores.length?historyScores:[0],tension:.3,fill:true}]}, options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:100,title:{display:true,text:'Score (%)'}}}}});
+new Chart(document.getElementById('breakdownChart'), {type:'doughnut', data:{labels:['Keyword','Semantic signal','Final'],datasets:[{data:[latestKeyword,latestSemantic,latestFinal]}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+</script>
+</body></html>

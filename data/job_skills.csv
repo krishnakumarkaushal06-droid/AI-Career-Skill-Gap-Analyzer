@@ -1,0 +1,29 @@
+job_title,skill,weight
+Data Analyst,Python,20
+Data Analyst,SQL,20
+Data Analyst,Excel,15
+Data Analyst,Statistics,15
+Data Analyst,Power BI,15
+Data Analyst,Data Visualization,10
+Data Analyst,Communication,5
+Data Scientist,Python,20
+Data Scientist,SQL,15
+Data Scientist,Statistics,15
+Data Scientist,Machine Learning,20
+Data Scientist,Pandas,10
+Data Scientist,NumPy,10
+Data Scientist,Data Visualization,10
+ML Engineer,Python,20
+ML Engineer,Machine Learning,20
+ML Engineer,TensorFlow,15
+ML Engineer,PyTorch,15
+ML Engineer,SQL,10
+ML Engineer,NumPy,10
+ML Engineer,Pandas,10
+Business Analyst,Excel,20
+Business Analyst,SQL,15
+Business Analyst,Power BI,15
+Business Analyst,Statistics,10
+Business Analyst,Data Visualization,15
+Business Analyst,Communication,15
+Business Analyst,Business Analysis,10
