@@ -19,6 +19,10 @@ app = Flask(
 )
 
 
+# =========================================================
+# DEBUG INFORMATION
+# =========================================================
+
 print("======================================")
 print("PROJECT ROOT:")
 print(app.root_path)
@@ -38,6 +42,7 @@ print(
         )
     )
 )
+
 print("======================================")
 
 
@@ -52,6 +57,13 @@ os.makedirs(
     app.config["UPLOAD_FOLDER"],
     exist_ok=True
 )
+
+
+# =========================================================
+# DELETE PASSWORD PROTECTION
+# =========================================================
+
+DELETE_PASSWORD = "krishna"
 
 
 # =========================================================
@@ -517,7 +529,9 @@ OPPORTUNITIES = [
 
 def get_db_connection():
 
-    database_url = os.environ.get("DATABASE_URL")
+    database_url = os.environ.get(
+        "DATABASE_URL"
+    )
 
     if not database_url:
 
@@ -603,36 +617,32 @@ def save_analysis(
 
         cursor = db.cursor()
 
-        query = """
-        INSERT INTO analysis_history
-        (
-            resume_name,
-            target_career,
-            keyword_score,
-            ai_semantic_score,
-            final_score
-        )
-        VALUES
-        (
-            %s,
-            %s,
-            %s,
-            %s,
-            %s
-        )
-        """
-
-        values = (
-            filename,
-            career,
-            keyword_score,
-            ai_semantic_score,
-            final_score
-        )
-
         cursor.execute(
-            query,
-            values
+            """
+            INSERT INTO analysis_history
+            (
+                resume_name,
+                target_career,
+                keyword_score,
+                ai_semantic_score,
+                final_score
+            )
+            VALUES
+            (
+                %s,
+                %s,
+                %s,
+                %s,
+                %s
+            )
+            """,
+            (
+                filename,
+                career,
+                keyword_score,
+                ai_semantic_score,
+                final_score
+            )
         )
 
         db.commit()
@@ -1133,56 +1143,58 @@ def opportunity_recommendations(
             readiness = "Skill Development Needed"
             badge = "low"
 
-        results.append({
+        results.append(
+            {
 
-            "type":
-                opportunity["type"],
+                "type":
+                    opportunity["type"],
 
-            "icon":
-                opportunity["icon"],
+                "icon":
+                    opportunity["icon"],
 
-            "title":
-                opportunity["title"],
+                "title":
+                    opportunity["title"],
 
-            "platform":
-                opportunity["platform"],
+                "platform":
+                    opportunity["platform"],
 
-            "url":
-                opportunity["url"],
+                "url":
+                    opportunity["url"],
 
-            "score":
-                final_match,
+                "score":
+                    final_match,
 
-            "skill_match":
-                round(
-                    skill_match,
-                    2
-                ),
+                "skill_match":
+                    round(
+                        skill_match,
+                        2
+                    ),
 
-            "career_relevance":
-                round(
-                    career_relevance,
-                    2
-                ),
+                "career_relevance":
+                    round(
+                        career_relevance,
+                        2
+                    ),
 
-            "readiness":
-                readiness,
+                "readiness":
+                    readiness,
 
-            "badge":
-                badge,
+                "badge":
+                    badge,
 
-            "matched":
-                matched,
+                "matched":
+                    matched,
 
-            "missing":
-                missing,
+                "missing":
+                    missing,
 
-            "matched_count":
-                len(matched),
+                "matched_count":
+                    len(matched),
 
-            "total_count":
-                total_skills
-        })
+                "total_count":
+                    total_skills
+            }
+        )
 
     return sorted(
         results,
@@ -1199,25 +1211,17 @@ def get_readiness_level(score):
 
     if score >= 85:
 
-        return (
-            "Excellent Career Readiness"
-        )
+        return "Excellent Career Readiness"
 
     if score >= 70:
 
-        return (
-            "Strong Career Readiness"
-        )
+        return "Strong Career Readiness"
 
     if score >= 50:
 
-        return (
-            "Developing Career Readiness"
-        )
+        return "Developing Career Readiness"
 
-    return (
-        "Beginner Career Readiness"
-    )
+    return "Beginner Career Readiness"
 
 
 # =========================================================
@@ -1231,7 +1235,6 @@ def get_readiness_level(score):
         "POST"
     ]
 )
-
 def index():
 
     if request.method == "POST":
@@ -1343,7 +1346,6 @@ def index():
                 missing,
                 priority,
                 required
-
             ) = analyze(
                 skills,
                 career
@@ -1359,22 +1361,14 @@ def index():
 
                 roadmap.append(
                     {
-
-                        "skill":
-                            skill,
+                        "skill": skill,
 
                         "priority":
-
                             "High"
-
                             if required[skill] >= 15
-
-                            else
-
-                            "Medium",
+                            else "Medium",
 
                         "action":
-
                             LEARNING.get(
                                 skill,
                                 "Practice this skill with a project."
@@ -1388,8 +1382,6 @@ def index():
                     career
                 )
             )
-
-            # SAVE ANALYSIS TO POSTGRESQL
 
             save_analysis(
                 filename,
@@ -1405,7 +1397,6 @@ def index():
                 average,
                 latest,
                 chart_history
-
             ) = get_dashboard_data()
 
             result = {
@@ -1481,7 +1472,6 @@ def index():
                 average,
                 latest,
                 chart_history
-
             ) = get_dashboard_data()
 
             return render_template(
@@ -1514,7 +1504,6 @@ def index():
         average,
         latest,
         chart_history
-
     ) = get_dashboard_data()
 
     return render_template(
@@ -1539,14 +1528,34 @@ def index():
 
 # =========================================================
 # DELETE SINGLE HISTORY RECORD
+# PASSWORD PROTECTED
 # =========================================================
 
 @app.route(
     "/delete-history/<int:record_id>",
     methods=["POST"]
 )
-
 def delete_history(record_id):
+
+    password = request.form.get(
+        "delete_password",
+        ""
+    )
+
+    if password != DELETE_PASSWORD:
+
+        print(
+            "DELETE DENIED: WRONG PASSWORD"
+        )
+
+        return redirect(
+            url_for(
+                "index",
+                delete_error="wrong_password"
+            )
+            +
+            "#dashboard"
+        )
 
     db = None
     cursor = None
@@ -1570,7 +1579,7 @@ def delete_history(record_id):
         db.commit()
 
         print(
-            f"History record {record_id} deleted."
+            f"History record {record_id} deleted successfully."
         )
 
     except Exception as e:
@@ -1601,14 +1610,34 @@ def delete_history(record_id):
 
 # =========================================================
 # DELETE ALL HISTORY
+# PASSWORD PROTECTED
 # =========================================================
 
 @app.route(
     "/delete-all-history",
     methods=["POST"]
 )
-
 def delete_all_history_route():
+
+    password = request.form.get(
+        "delete_password",
+        ""
+    )
+
+    if password != DELETE_PASSWORD:
+
+        print(
+            "DELETE ALL DENIED: WRONG PASSWORD"
+        )
+
+        return redirect(
+            url_for(
+                "index",
+                delete_error="wrong_password"
+            )
+            +
+            "#dashboard"
+        )
 
     db = None
     cursor = None
@@ -1629,7 +1658,7 @@ def delete_all_history_route():
         db.commit()
 
         print(
-            "ALL HISTORY DELETED AND ID RESET TO 1"
+            "ALL HISTORY DELETED SUCCESSFULLY"
         )
 
     except Exception as e:
@@ -1665,7 +1694,6 @@ def delete_all_history_route():
 @app.route(
     "/dashboard"
 )
-
 def dashboard():
 
     (
@@ -1674,7 +1702,6 @@ def dashboard():
         average,
         latest,
         chart_history
-
     ) = get_dashboard_data()
 
     return render_template(
@@ -1704,7 +1731,6 @@ def dashboard():
 @app.route(
     "/presentation"
 )
-
 def presentation():
 
     return render_template(
@@ -1719,7 +1745,6 @@ def presentation():
 @app.errorhandler(
     413
 )
-
 def file_too_large(error):
 
     (
@@ -1728,7 +1753,6 @@ def file_too_large(error):
         average,
         latest,
         chart_history
-
     ) = get_dashboard_data()
 
     return render_template(
@@ -1774,4 +1798,4 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=5000,
         debug=True
-    )
+    )                        
