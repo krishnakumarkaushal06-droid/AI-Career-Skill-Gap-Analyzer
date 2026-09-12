@@ -45,8 +45,6 @@ print("======================================")
 # CONFIGURATION
 # =========================================================
 
-DELETE_PASSWORD = "krishna"
-
 app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
 
@@ -1547,27 +1545,16 @@ def index():
     "/delete-history/<int:record_id>",
     methods=["POST"]
 )
+
 def delete_history(record_id):
-
-    password = request.form.get(
-        "delete_password",
-        ""
-    )
-
-    if password != DELETE_PASSWORD:
-        return redirect(
-            url_for(
-                "index",
-                delete_error="wrong"
-            )
-            + "#dashboard"
-        )
 
     db = None
     cursor = None
 
     try:
+
         db = get_db_connection()
+
         cursor = db.cursor()
 
         cursor.execute(
@@ -1575,19 +1562,30 @@ def delete_history(record_id):
             DELETE FROM analysis_history
             WHERE id = %s
             """,
-            (record_id,)
+            (
+                record_id,
+            )
         )
 
         db.commit()
-        print(f"History record {record_id} deleted.")
+
+        print(
+            f"History record {record_id} deleted."
+        )
 
     except Exception as e:
-        print("DELETE HISTORY ERROR:")
+
+        print(
+            "DELETE HISTORY ERROR:"
+        )
+
         print(e)
 
     finally:
+
         if cursor:
             cursor.close()
+
         if db:
             db.close()
 
@@ -1596,7 +1594,8 @@ def delete_history(record_id):
             "index",
             deleted="one"
         )
-        + "#dashboard"
+        +
+        "#dashboard"
     )
 
 
@@ -1608,27 +1607,16 @@ def delete_history(record_id):
     "/delete-all-history",
     methods=["POST"]
 )
+
 def delete_all_history_route():
-
-    password = request.form.get(
-        "delete_password",
-        ""
-    )
-
-    if password != DELETE_PASSWORD:
-        return redirect(
-            url_for(
-                "index",
-                delete_error="wrong"
-            )
-            + "#dashboard"
-        )
 
     db = None
     cursor = None
 
     try:
+
         db = get_db_connection()
+
         cursor = db.cursor()
 
         cursor.execute(
@@ -1639,15 +1627,24 @@ def delete_all_history_route():
         )
 
         db.commit()
-        print("ALL HISTORY DELETED AND ID RESET TO 1")
+
+        print(
+            "ALL HISTORY DELETED AND ID RESET TO 1"
+        )
 
     except Exception as e:
-        print("DELETE ALL HISTORY ERROR:")
+
+        print(
+            "DELETE ALL HISTORY ERROR:"
+        )
+
         print(e)
 
     finally:
+
         if cursor:
             cursor.close()
+
         if db:
             db.close()
 
@@ -1656,7 +1653,8 @@ def delete_all_history_route():
             "index",
             deleted="all"
         )
-        + "#dashboard"
+        +
+        "#dashboard"
     )
 
 
