@@ -45,17 +45,12 @@ href="{{ url_for('static', filename='style.css') }}"
   <div class="hero-chips">
 
     <span>Resume NLP</span>
-
     <span>Career Matching</span>
-
     <span>Skill Gap</span>
-
     <span>Learning Roadmap</span>
 
   </div>
 
-
-  <!-- PROJECT OWNER -->
 
   <div class="project-owner">
 
@@ -96,24 +91,16 @@ id="analysis"
 >
 
 <div class="section-tag">
-
 01 • START ANALYSIS
-
 </div>
 
-
 <h2>
-
 Analyze your career readiness
-
 </h2>
 
-
 <p class="muted">
-
 Upload a PDF resume and select the career
 you want to evaluate.
-
 </p>
 
 
@@ -122,18 +109,13 @@ method="POST"
 enctype="multipart/form-data"
 >
 
-
 <div class="form-grid">
-
 
 <div>
 
 <label>
-
 Resume PDF
-
 </label>
-
 
 <input
 type="file"
@@ -142,18 +124,14 @@ accept=".pdf"
 required
 >
 
-
 </div>
 
 
 <div>
 
 <label>
-
 Target career
-
 </label>
-
 
 <select name="career">
 
@@ -169,9 +147,7 @@ Target career
 
 </select>
 
-
 </div>
-
 
 </div>
 
@@ -182,9 +158,7 @@ Target career
 
 </button>
 
-
 </form>
-
 
 </section>
 
@@ -199,32 +173,19 @@ Target career
 
 <section class="result-head">
 
-
 <div>
 
-
 <div class="section-tag">
-
 02 • CURRENT ANALYSIS
-
 </div>
 
-
 <h2>
-
 {{ result.career }}
-
 </h2>
 
-
 <p>
-
-{{ result.level }}
-•
-personalized skill intelligence report
-
+{{ result.level }} • personalized skill intelligence report
 </p>
-
 
 </div>
 
@@ -233,138 +194,94 @@ personalized skill intelligence report
 href="#dashboard"
 class="jump"
 >
-
 View dashboard ↓
-
 </a>
-
 
 </section>
 
 
 
+<!-- ========================================================= -->
 <!-- SCORE -->
+<!-- ========================================================= -->
 
 <section class="score-grid">
 
 
 <div class="panel score-card">
 
-
 <div class="score-ring">
 
 <span>
-
 {{ result.score }}%
-
 </span>
 
-
 <small>
-
 Readiness
-
 </small>
-
 
 </div>
 
 
 <div>
 
-
 <div class="section-tag">
-
 CAREER READINESS SCORE
-
 </div>
-
 
 <h2>
-
 {{ result.score }}%
-
 </h2>
 
-
 <p class="muted">
-
-Weighted exact matching +
-related-skill signal.
-
+Weighted exact matching + related-skill signal.
 </p>
 
+</div>
 
 </div>
 
 
-</div>
-
-
-
-<!-- METRICS -->
 
 <div class="panel metrics">
 
-
 <div>
 
 <span>
-
 🔑 Keyword Matching
-
 </span>
 
-
 <strong>
-
 {{ result.keyword_score }}%
-
 </strong>
 
-
 </div>
-
 
 
 <div>
 
 <span>
-
 🤖 Semantic Signal
-
 </span>
 
-
 <strong>
-
 {{ result.ai_score }}%
-
 </strong>
 
-
 </div>
-
 
 
 <div>
 
 <span>
-
 🎯 Final AI Score
-
 </span>
 
-
 <strong>
-
 {{ result.score }}%
-
 </strong>
 
-
 </div>
-
 
 </div>
 
@@ -379,18 +296,12 @@ related-skill signal.
 
 <section class="panel">
 
-
 <div class="section-tag">
-
 03 • MODEL EVALUATION
-
 </div>
 
-
 <h2>
-
 📈 Matching Method Comparison
-
 </h2>
 
 
@@ -399,22 +310,15 @@ related-skill signal.
 
 <div class="compare-card">
 
-
 <div>
 
 <b>
-
 Keyword Model
-
 </b>
 
-
 <strong>
-
 {{ result.keyword_score }}%
-
 </strong>
-
 
 </div>
 
@@ -424,18 +328,14 @@ Keyword Model
 <i
 style="width:{{ result.keyword_score }}%"
 >
-
 </i>
 
 </div>
 
 
 <small>
-
 Exact weighted skill coverage
-
 </small>
-
 
 </div>
 
@@ -443,22 +343,15 @@ Exact weighted skill coverage
 
 <div class="compare-card">
 
-
 <div>
 
 <b>
-
 AI Semantic Model
-
 </b>
 
-
 <strong>
-
 {{ result.ai_score }}%
-
 </strong>
-
 
 </div>
 
@@ -468,24 +361,19 @@ AI Semantic Model
 <i
 style="width:{{ result.ai_score }}%"
 >
-
 </i>
 
 </div>
 
 
 <small>
-
 Coverage plus related-skill signal
-
 </small>
 
-
 </div>
 
 
 </div>
-
 
 </section>
 
@@ -500,26 +388,18 @@ Coverage plus related-skill signal
 
 <div class="panel">
 
-
 <div class="section-tag">
-
 04 • PROFILE STRENGTH
-
 </div>
 
-
 <h2>
-
 ✅ Matched Skills
-
 </h2>
 
 
 <div class="pills">
 
-
 {% for s in result.existing %}
-
 
 <span class="pill good">
 
@@ -527,9 +407,7 @@ Coverage plus related-skill signal
 
 </span>
 
-
 {% else %}
-
 
 <p class="muted">
 
@@ -537,12 +415,9 @@ No exact required skills detected.
 
 </p>
 
-
 {% endfor %}
 
-
 </div>
-
 
 </div>
 
@@ -550,26 +425,18 @@ No exact required skills detected.
 
 <div class="panel">
 
-
 <div class="section-tag">
-
 05 • SKILL GAP
-
 </div>
 
-
 <h2>
-
 ❌ Priority Gaps
-
 </h2>
 
 
 <div class="pills">
 
-
 {% for s in result.missing %}
-
 
 <span class="pill bad">
 
@@ -577,9 +444,7 @@ No exact required skills detected.
 
 </span>
 
-
 {% else %}
-
 
 <p class="muted">
 
@@ -587,12 +452,9 @@ No exact required skills detected.
 
 </p>
 
-
 {% endfor %}
 
-
 </div>
-
 
 </div>
 
@@ -607,29 +469,20 @@ No exact required skills detected.
 
 <section class="panel">
 
-
 <div class="section-tag">
-
 06 • CAREER RECOMMENDATION ENGINE
-
 </div>
 
-
 <h2>
-
 🎯 Top Career Recommendations
-
 </h2>
 
 
 <div class="recommendations">
 
-
 {% for role in result.roles[:5] %}
 
-
 <div class="bar-row">
-
 
 <span>
 
@@ -644,27 +497,20 @@ No exact required skills detected.
 <i
 style="width:{{ role.score }}%"
 >
-
 </i>
 
 </div>
 
 
 <b>
-
 {{ role.score }}%
-
 </b>
 
-
 </div>
-
 
 {% endfor %}
 
-
 </div>
-
 
 </section>
 
@@ -676,26 +522,18 @@ style="width:{{ role.score }}%"
 
 <section class="panel">
 
-
 <div class="section-tag">
-
 07 • PERSONALIZED UPSKILLING
-
 </div>
 
-
 <h2>
-
 🗺️ Learning Roadmap
-
 </h2>
 
 
 {% for r in result.roadmap %}
 
-
 <div class="road">
-
 
 <div class="road-no">
 
@@ -706,14 +544,10 @@ style="width:{{ role.score }}%"
 
 <div class="road-main">
 
-
 <div>
 
-
 <strong>
-
 {{ r.skill }}
-
 </strong>
 
 
@@ -725,25 +559,19 @@ class="priority {{ r.priority|lower }}"
 
 </span>
 
-
 </div>
 
 
 <p>
-
 {{ r.action }}
-
 </p>
 
-
 </div>
-
 
 </div>
 
 
 {% else %}
-
 
 <div class="success">
 
@@ -752,9 +580,7 @@ career requirements.
 
 </div>
 
-
 {% endfor %}
-
 
 </section>
 
@@ -766,32 +592,22 @@ career requirements.
 
 <section class="panel">
 
-
 <div class="section-tag">
-
 08 • OPPORTUNITY MATCHING
-
 </div>
 
-
 <h2>
-
 🚀 Recommended Opportunities
-
 </h2>
 
 
 {% if result.opportunities %}
 
-
 <div class="recommendations">
-
 
 {% for opportunity in result.opportunities[:6] %}
 
-
 <div class="opportunity-card">
-
 
 <h3>
 
@@ -804,9 +620,7 @@ career requirements.
 <p>
 
 <strong>
-
 {{ opportunity.type }}
-
 </strong>
 
 •
@@ -821,9 +635,7 @@ career requirements.
 Match Score:
 
 <strong>
-
 {{ opportunity.score }}%
-
 </strong>
 
 •
@@ -852,18 +664,14 @@ View Opportunity →
 
 </a>
 
-
 </div>
 
-
 {% endfor %}
-
 
 </div>
 
 
 {% else %}
-
 
 <p class="muted">
 
@@ -871,9 +679,7 @@ Run an analysis to get personalized opportunities.
 
 </p>
 
-
 {% endif %}
-
 
 </section>
 
@@ -891,31 +697,20 @@ id="dashboard"
 class="dashboard-title"
 >
 
-
 <div>
 
-
 <div class="section-tag">
-
 09 • RESEARCH CONCLAVE DASHBOARD
-
 </div>
 
-
 <h2>
-
 📊 Career Analytics Dashboard
-
 </h2>
 
-
 <p>
-
 All analysis, trends and history are
 available on this same page.
-
 </p>
-
 
 </div>
 
@@ -928,7 +723,6 @@ class="jump"
 ↑ New analysis
 
 </a>
-
 
 </section>
 
@@ -943,27 +737,17 @@ class="jump"
 
 <div class="stat panel">
 
-
 <span>
-
 Total Analyses
-
 </span>
 
-
 <strong>
-
 {{ total }}
-
 </strong>
 
-
 <small>
-
 Saved evaluation records
-
 </small>
-
 
 </div>
 
@@ -971,27 +755,17 @@ Saved evaluation records
 
 <div class="stat panel">
 
-
 <span>
-
 Average Readiness
-
 </span>
 
-
 <strong>
-
 {{ average }}%
-
 </strong>
 
-
 <small>
-
 Across recorded analyses
-
 </small>
-
 
 </div>
 
@@ -999,27 +773,17 @@ Across recorded analyses
 
 <div class="stat panel">
 
-
 <span>
-
 Latest Score
-
 </span>
 
-
 <strong>
-
 {{ latest|round(0)|int }}%
-
 </strong>
 
-
 <small>
-
 Most recent evaluation
-
 </small>
-
 
 </div>
 
@@ -1037,25 +801,16 @@ Most recent evaluation
 
 <div class="panel chart-panel">
 
-
 <div class="section-tag">
-
 TREND
-
 </div>
 
-
 <h2>
-
 📈 Readiness History
-
 </h2>
 
-
 <canvas id="scoreChart">
-
 </canvas>
-
 
 </div>
 
@@ -1063,51 +818,34 @@ TREND
 
 <div class="panel chart-panel">
 
-
 <div class="section-tag">
-
 LATEST SNAPSHOT
-
 </div>
 
-
 <h2>
-
 🧠 Score Breakdown
-
 </h2>
 
-
 <canvas id="breakdownChart">
-
 </canvas>
 
 
 {% if history %}
 
-
 <div class="snapshot">
 
-
 <b>
-
 {{ history[0]['target_career'] }}
-
 </b>
 
-
 <span>
-
 {{ history[0]['resume_name'] }}
-
 </span>
-
 
 </div>
 
 
 {% else %}
-
 
 <p class="muted">
 
@@ -1116,9 +854,7 @@ the dashboard.
 
 </p>
 
-
 {% endif %}
-
 
 </div>
 
@@ -1136,9 +872,7 @@ the dashboard.
 
 <div class="history-head">
 
-
 <div>
-
 
 <div class="section-tag">
 
@@ -1146,25 +880,39 @@ the dashboard.
 
 </div>
 
-
 <h2>
 
 🗂️ Analysis History
 
 </h2>
 
+</div>
 
 </div>
 
 
+
+<!-- ========================================================= -->
+<!-- WRONG PASSWORD MESSAGE -->
+<!-- ========================================================= -->
+
+{% if request.args.get('delete_error') == 'wrong' %}
+
+<div class="error">
+
+❌ Wrong password. History was not deleted.
+
 </div>
 
+{% endif %}
 
 
+
+<!-- ========================================================= -->
 <!-- SUCCESS MESSAGE -->
+<!-- ========================================================= -->
 
 {% if request.args.get('deleted') == 'one' %}
-
 
 <div class="success">
 
@@ -1175,13 +923,11 @@ the dashboard.
 
 {% elif request.args.get('deleted') == 'all' %}
 
-
 <div class="success">
 
 ✅ All analysis history deleted successfully.
 
 </div>
-
 
 {% endif %}
 
@@ -1190,13 +936,11 @@ the dashboard.
 {% if history %}
 
 
-
 <!-- ========================================================= -->
 <!-- DELETE ALL HISTORY -->
 <!-- ========================================================= -->
 
 <div class="delete-all-section">
-
 
 <h3>
 
@@ -1237,9 +981,7 @@ class="danger-btn"
 
 </button>
 
-
 </form>
-
 
 </div>
 
@@ -1251,74 +993,29 @@ class="danger-btn"
 
 <div class="table-wrap">
 
-
 <table>
-
 
 <thead>
 
-
 <tr>
 
+<th>#</th>
 
-<th>
+<th>Resume</th>
 
-#
+<th>Target Career</th>
 
-</th>
+<th>Keyword</th>
 
+<th>Semantic</th>
 
-<th>
+<th>Final</th>
 
-Resume
+<th>Analyzed</th>
 
-</th>
-
-
-<th>
-
-Target Career
-
-</th>
-
-
-<th>
-
-Keyword
-
-</th>
-
-
-<th>
-
-Semantic
-
-</th>
-
-
-<th>
-
-Final
-
-</th>
-
-
-<th>
-
-Analyzed
-
-</th>
-
-
-<th>
-
-Action
-
-</th>
-
+<th>Action</th>
 
 </tr>
-
 
 </thead>
 
@@ -1329,74 +1026,55 @@ Action
 
 {% for row in history %}
 
-
 <tr>
 
 
 <td>
-
 {{ row['id'] }}
-
 </td>
 
 
 <td>
-
 {{ row['resume_name'] }}
-
 </td>
 
 
 <td>
-
 {{ row['target_career'] }}
-
 </td>
 
 
 <td>
-
 {{ row['keyword_score'] }}%
-
 </td>
 
 
 <td>
-
 {{ row['ai_semantic_score'] }}%
-
 </td>
 
 
 <td>
 
 <b>
-
 {{ row['final_score'] }}%
-
 </b>
 
-
 </td>
 
 
 <td>
-
 {{ row['analyzed_at'] }}
-
 </td>
 
 
 
-<!-- DELETE SINGLE -->
-
 <td>
-
 
 <form
 method="POST"
 action="{{ url_for('delete_history', record_id=row['id']) }}"
-onsubmit="return confirm('Delete this analysis from history?');"
+onsubmit="return confirm('Delete this analysis from history? Password will be required.');"
 >
 
 
@@ -1417,24 +1095,19 @@ Delete
 
 </button>
 
-
 </form>
-
 
 </td>
 
 
 </tr>
 
-
 {% endfor %}
 
 
 </tbody>
 
-
 </table>
-
 
 </div>
 
@@ -1494,69 +1167,41 @@ an actionable learning roadmap.
 
 <div class="research-grid">
 
-
 <span>
-
 01 Resume Processing
-
 </span>
 
-
 <span>
-
 02 Skill Extraction
-
 </span>
 
-
 <span>
-
 03 Weighted Matching
-
 </span>
 
-
 <span>
-
 04 Semantic Signal
-
 </span>
 
-
 <span>
-
 05 Career Ranking
-
 </span>
 
-
 <span>
-
 06 Gap Detection
-
 </span>
 
-
 <span>
-
 07 Opportunity Matching
-
 </span>
 
-
 <span>
-
 08 Learning Roadmap
-
 </span>
-
 
 <span>
-
 09 History Analytics
-
 </span>
-
 
 </div>
 
@@ -1570,7 +1215,6 @@ an actionable learning roadmap.
 <!-- ========================================================= -->
 
 <footer>
-
 
 <b>
 
@@ -1625,7 +1269,6 @@ const latestSemantic =
 
 const latestFinal =
 {{ (history[0]['final_score'] if history else 0)|tojson }};
-
 
 
 
