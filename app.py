@@ -1,9 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
 import os
 import re
-
 import psycopg2
-from psycopg2.extras import RealDictCursor
+import psycopg2.extras
 
 from werkzeug.utils import secure_filename
 from pypdf import PdfReader
@@ -28,12 +27,7 @@ print("STATIC FOLDER:")
 print(app.static_folder)
 
 print("VIDEO PATH:")
-print(
-    os.path.join(
-        app.static_folder,
-        "my-ai-video.mp4"
-    )
-)
+print(os.path.join(app.static_folder, "my-ai-video.mp4"))
 
 print("VIDEO EXISTS:")
 print(
@@ -44,7 +38,6 @@ print(
         )
     )
 )
-
 print("======================================")
 
 
@@ -52,24 +45,15 @@ print("======================================")
 # CONFIGURATION
 # =========================================================
 
+DELETE_PASSWORD = "krishna"
+
 app.config["UPLOAD_FOLDER"] = "uploads"
-
-app.config["MAX_CONTENT_LENGTH"] = (
-    8 * 1024 * 1024
-)
-
+app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
 
 os.makedirs(
     app.config["UPLOAD_FOLDER"],
     exist_ok=True
 )
-
-
-# =========================================================
-# DELETE PASSWORD
-# =========================================================
-
-DELETE_PASSWORD = "krishna"
 
 
 # =========================================================
@@ -530,24 +514,74 @@ OPPORTUNITIES = [
 
 
 # =========================================================
-# POSTGRESQL CONNECTION
+# POSTGRESQL DATABASE CONNECTION
 # =========================================================
 
 def get_db_connection():
 
-    database_url = os.environ.get(
-        "DATABASE_URL"
-    )
+    database_url = os.environ.get("DATABASE_URL")
 
     if not database_url:
 
         raise Exception(
-            "DATABASE_URL environment variable is not set."
+            "DATABASE_URL environment variable is not configured."
         )
 
     return psycopg2.connect(
-        database_url
+        database_url,
+        sslmode="require"
     )
+
+
+# =========================================================
+# CREATE TABLE
+# =========================================================
+
+def create_table():
+
+    db = None
+    cursor = None
+
+    try:
+
+        db = get_db_connection()
+
+        cursor = db.cursor()
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS analysis_history (
+                id SERIAL PRIMARY KEY,
+                resume_name VARCHAR(255) NOT NULL,
+                target_career VARCHAR(255) NOT NULL,
+                keyword_score DOUBLE PRECISION,
+                ai_semantic_score DOUBLE PRECISION,
+                final_score DOUBLE PRECISION,
+                analyzed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        db.commit()
+
+        print("===================================")
+        print("POSTGRESQL TABLE READY")
+        print("===================================")
+
+    except Exception as e:
+
+        print("===================================")
+        print("TABLE CREATION ERROR:")
+        print(e)
+        print("===================================")
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if db:
+            db.close()
 
 
 # =========================================================
@@ -645,7 +679,7 @@ def get_dashboard_data():
         db = get_db_connection()
 
         cursor = db.cursor(
-            cursor_factory=RealDictCursor
+            cursor_factory=psycopg2.extras.RealDictCursor
         )
 
         cursor.execute(
@@ -664,6 +698,11 @@ def get_dashboard_data():
         )
 
         history = cursor.fetchall()
+
+        history = [
+            dict(row)
+            for row in history
+        ]
 
         total = len(history)
 
@@ -1096,58 +1135,56 @@ def opportunity_recommendations(
             readiness = "Skill Development Needed"
             badge = "low"
 
-        results.append(
-            {
+        results.append({
 
-                "type":
-                    opportunity["type"],
+            "type":
+                opportunity["type"],
 
-                "icon":
-                    opportunity["icon"],
+            "icon":
+                opportunity["icon"],
 
-                "title":
-                    opportunity["title"],
+            "title":
+                opportunity["title"],
 
-                "platform":
-                    opportunity["platform"],
+            "platform":
+                opportunity["platform"],
 
-                "url":
-                    opportunity["url"],
+            "url":
+                opportunity["url"],
 
-                "score":
-                    final_match,
+            "score":
+                final_match,
 
-                "skill_match":
-                    round(
-                        skill_match,
-                        2
-                    ),
+            "skill_match":
+                round(
+                    skill_match,
+                    2
+                ),
 
-                "career_relevance":
-                    round(
-                        career_relevance,
-                        2
-                    ),
+            "career_relevance":
+                round(
+                    career_relevance,
+                    2
+                ),
 
-                "readiness":
-                    readiness,
+            "readiness":
+                readiness,
 
-                "badge":
-                    badge,
+            "badge":
+                badge,
 
-                "matched":
-                    matched,
+            "matched":
+                matched,
 
-                "missing":
-                    missing,
+            "missing":
+                missing,
 
-                "matched_count":
-                    len(matched),
+            "matched_count":
+                len(matched),
 
-                "total_count":
-                    total_skills
-            }
-        )
+            "total_count":
+                total_skills
+        })
 
     return sorted(
         results,
@@ -1354,6 +1391,8 @@ def index():
                 )
             )
 
+            # SAVE ANALYSIS TO POSTGRESQL
+
             save_analysis(
                 filename,
                 career,
@@ -1508,7 +1547,6 @@ def index():
     "/delete-history/<int:record_id>",
     methods=["POST"]
 )
-
 def delete_history(record_id):
 
     password = request.form.get(
@@ -1517,23 +1555,19 @@ def delete_history(record_id):
     )
 
     if password != DELETE_PASSWORD:
-
         return redirect(
             url_for(
                 "index",
                 delete_error="wrong"
             )
-            +
-            "#dashboard"
+            + "#dashboard"
         )
 
     db = None
     cursor = None
 
     try:
-
         db = get_db_connection()
-
         cursor = db.cursor()
 
         cursor.execute(
@@ -1541,30 +1575,19 @@ def delete_history(record_id):
             DELETE FROM analysis_history
             WHERE id = %s
             """,
-            (
-                record_id,
-            )
+            (record_id,)
         )
 
         db.commit()
-
-        print(
-            f"History record {record_id} deleted successfully."
-        )
+        print(f"History record {record_id} deleted.")
 
     except Exception as e:
-
-        print(
-            "DELETE HISTORY ERROR:"
-        )
-
+        print("DELETE HISTORY ERROR:")
         print(e)
 
     finally:
-
         if cursor:
             cursor.close()
-
         if db:
             db.close()
 
@@ -1573,8 +1596,7 @@ def delete_history(record_id):
             "index",
             deleted="one"
         )
-        +
-        "#dashboard"
+        + "#dashboard"
     )
 
 
@@ -1586,7 +1608,6 @@ def delete_history(record_id):
     "/delete-all-history",
     methods=["POST"]
 )
-
 def delete_all_history_route():
 
     password = request.form.get(
@@ -1595,23 +1616,19 @@ def delete_all_history_route():
     )
 
     if password != DELETE_PASSWORD:
-
         return redirect(
             url_for(
                 "index",
                 delete_error="wrong"
             )
-            +
-            "#dashboard"
+            + "#dashboard"
         )
 
     db = None
     cursor = None
 
     try:
-
         db = get_db_connection()
-
         cursor = db.cursor()
 
         cursor.execute(
@@ -1622,24 +1639,15 @@ def delete_all_history_route():
         )
 
         db.commit()
-
-        print(
-            "ALL HISTORY DELETED SUCCESSFULLY"
-        )
+        print("ALL HISTORY DELETED AND ID RESET TO 1")
 
     except Exception as e:
-
-        print(
-            "DELETE ALL HISTORY ERROR:"
-        )
-
+        print("DELETE ALL HISTORY ERROR:")
         print(e)
 
     finally:
-
         if cursor:
             cursor.close()
-
         if db:
             db.close()
 
@@ -1648,8 +1656,7 @@ def delete_all_history_route():
             "index",
             deleted="all"
         )
-        +
-        "#dashboard"
+        + "#dashboard"
     )
 
 
@@ -1750,6 +1757,13 @@ def file_too_large(error):
         )
 
     ), 413
+
+
+# =========================================================
+# STARTUP
+# =========================================================
+
+create_table()
 
 
 # =========================================================
